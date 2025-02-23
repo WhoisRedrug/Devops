@@ -1,0 +1,189 @@
+Swarm-da lazim olan portlar
+ 
+
+
+
+
+
+
+
+
+
+
+TCP 2377 Manager nodelerin oz aralarinda danishan portdur (Yeni swarmlarin)
+TCP/UDP 7946 node-lerin oz aralarinda
+TCP 4789 Overlay network trafiki idare edir
+
+Docker Swarm Nədir?
+Docker Swarm, Docker konteynerlərinin bir neçə node (server) üzərində klaster şəkildə işləməsini təmin edən orkestrasiya alətidir. Kubernetes kimi geniş funksionallığı olmasa da, asandır və Docker ilə sıx inteqrasiya olunub.
+Docker Swarm-ın əsas xüsusiyyətləri:
+✅ Klaster idarəetməsi (Multiple nodes – Manager & Worker)
+✅ Xidmət (Service) və Task anlayışı
+✅ Load Balancing (yük balanslama)
+✅ Self-healing (öz-özünü bərpa etmə)
+✅ Rolling Updates (yeniləmələri tədricən tətbiq etmə)
+✅ Built-in Discovery (daxili xidmət kəşfi)
+
+1. Docker Swarm Quraşdırılması və Konfiqurasiyası
+Docker Swarm-i test və ya real mühitdə qurmaq üçün ən azı 2 server (node) lazımdır. Bunları lokal mühitdə (VM-lərlə) və ya buludda (AWS, Azure, GCP, DigitalOcean) quraşdıra bilərsən.
+✅ Tələblər:
+•	2 və ya daha çox Linux (Ubuntu, Debian, CentOS) server
+•	Docker Engine quraşdırılmış olmalıdır
+1.1 Docker Engine Quraşdırılması
+Əgər Docker sistemdə quraşdırılmayıbsa, aşağıdakı əmrlərlə onu quraşdıra bilərsən:
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+Əgər Docker-in rəsmi versiyasını istəyirsənsə:
+curl -fsSL https://get.docker.com | sh
+Docker-in işlədiyini yoxla:
+
+docker version
+docker info
+docker info | grep “swarm” yazmaqla biz tam deqiq bilirik ki bizde Node-da swarm inactivedir
+Docker swarm init edende arti bizde swarm aktive edilir
+docker swarm join-token worker
+
+2. Swarm Modunu Aktiv Etmək
+Swarm modunu Manager Node-da aktivləşdiririk:
+docker swarm init --advertise-addr <Manager_IP>
+📌 <Manager_IP> – manager node-un IP ünvanını yazmalısan.
+Uğurla başa çatdıqdan sonra Worker node-ları qoşmaq üçün bir token verəcək.
+docker swarm join-token worker
+Bunu worker node-da işlə:
+docker swarm join --token <TOKEN> <MANAGER_IP>:2377
+Worker uğurla qoşulubsa, manager node-da aşağıdakı əmrlə bunu görə bilərsən:
+docker node ls
+Əgər node-u Manager etmək istəyirsənsə, bu əmrdən istifadə edə bilərsən:
+docker node promote <NODE_ID>
+
+3. Swarm-da Xidmətlərin İdarə Edilməsi
+Yeni bir xidmət yaratmaq üçün:
+docker service create --name nginx -p 80:80 nginx
+📌 nginx adlı bir xidmət yaradırıq və onu 80-ci portda açırıq.
+Xidmətləri yoxlamaq üçün:
+docker service ls
+Detalları görmək üçün:
+docker service ps nginx
+
+4. Load Balancing və Replikasiya
+Xidməti birdən çox replikasiya ilə yaratmaq üçün:
+docker service create --name myweb --replicas 3 -p 8080:80 nginx
+📌 Bu əmrlə 3 replikalı nginx xidməti yaradılır.
+Replikaları artırıb azaltmaq:
+docker service scale myweb=5
+📌 Xidmətin replikalarının sayını 5-ə çatdırır.
+Xidmətin silinməsi:
+docker service rm myweb
+
+5. Rolling Update və Rollback
+Xidməti yeniləmək:
+docker service update --image nginx:latest myweb
+📌 Yeni versiyanı tətbiq edir.
+Əvvəlki versiyaya qayıtmaq:
+docker service rollback myweb
+
+6. Swarm-da Şəbəkə (Networking)
+Şəbəkə yaratmaq və istifadə etmək:
+docker network create --driver overlay mynet
+docker service create --name myweb --network mynet nginx
+
+7. Swarm Klasterinin Dayandırılması və Sıfırlanması
+Əgər klasteri dayandırmaq istəyirsənsə:
+docker swarm leave --force
+📌 Manager node-da bunu etsən, bütün Swarm silinir.
+Worker node-u çıxarmaq üçün isə:
+docker swarm leave
+
+Nəticə
+Docker Swarm asandır, yüngüldür və Docker-in ekosisteminə inteqrasiya olunmuşdur. Əgər Kubernetes-dən əvvəl sadə orkestrasiya öyrənmək istəyirsənsə, Docker Swarm ideal seçimdir.
+Əgər praktiki məşqlərə keçmək istəyirsənsə, mən sənə real layihə üzərində işləmək üçün bəzi tapşırıqlar və layihə nümunələri təqdim edə bilərəm. 🚀
+
+docker swarm init
+docker swarm join --token <TOKEN> <MANAGER-IP>:2377
+docker node ls
+
+Docker Swarm mühitində node-ların idarə edilməsi üçün aşağıdakı komandalar istifadə olunur:
+docker node promote
+Worker node-u Manager node-a çevirmək üçün istifadə olunur.
+Swarm klasterində manager roluna malik olan node-lar idarəetmə əməliyyatlarını həyata keçirə bilər, məsələn, xidmətlərin yerləşdirilməsi (deploy), yeni node-ların əlavə edilməsi və s.
+docker node promote worker1
+
+docker node demote
+Manager node-u Worker node-a çevirmək üçün istifadə olunur.
+Əgər bir node artıq idarəetmə (management) funksiyalarını icra etməməlidirsə, onu yenidən worker-ə çevirmək olar.
+docker node demote manager2
+
+docker node update –availability
+Node-un vəziyyətini (active, pause, drain) dəyişdirmək üçün istifadə olunur.
+Bu əmr node-un hansı vəziyyətdə olacağını idarə edir:
+✅ active – Node aktivdir və workload (yəni, konteynerlər) qəbul edə bilər.
+⏸ pause – Node işlək qalır, amma yeni workload qəbul etmir.
+🚫 drain – Node mövcud workload-ları başqa node-lara köçürür və yeni workload qəbul etmir.
+docker node update --availability drain worker2
+Yeni bir Worker node-u Manager-a çevirmək:
+docker node promote worker3
+Bir Manager node-u Worker-a çevirmək:
+docker node demote manager1
+Müvəqqəti olaraq bir node-u workload qəbul etməyə dayandırmaq (pause):
+docker node update --availability pause worker1
+Bir node-u tamamilə workload qəbul etməməsi üçün ayırmaq (drain):
+docker node update --availability drain worker2
+Bir node-u yenidən aktiv etmək:
+docker node update --availability active worker2
+#######
+
+Portainer nədir?
+Portainer, Docker, Docker Swarm və Kubernetes kimi konteyner mühitlərini qrafik interfeys (GUI) vasitəsilə idarə etməyə imkan verən açıq mənbəli (open-source) bir platformadır. Əsas məqsədi konteynerlərin idarə edilməsini asanlaşdırmaqdır.
+
+
+
+Portainer nədir və nə üçün lazımdır?
+Portainer, konteyner orkestrasiyasını və idarəetməsini asanlaşdıran bir veb interfeysdir. Docker, Docker Swarm və Kubernetes kimi konteyner sistemlərini idarə etmək üçün istifadə olunur. O, qrafik interfeys təqdim edərək, əmr sətri vasitəsilə yerinə yetirilən bir çox əməliyyatı asanlaşdırır.
+
+Portainer-in üstünlükləri:
+✅ İstifadə rahatlığı – CLI (komanda sətri) bilmədən konteynerləri idarə etmək imkanı yaradır.
+✅ Docker və Kubernetes dəstəyi – Həm lokal Docker hostlarını, həm də klaster mühitlərini idarə edir.
+✅ Qrafik interfeys – Konteynerlərin, imiclərin, həcm (volume), şəbəkələrin və servislərin idarə edilməsi üçün asan istifadə olunan veb interfeys təqdim edir.
+✅ Multi-user və RBAC (Role-Based Access Control) – Müxtəlif istifadəçilər üçün fərqli icazələr təyin etməyə imkan verir.
+✅ Monitoring və Logging – Konteynerlərin performansını və loglarını izləməyə kömək edir.
+✅ Docker Compose və Stack idarəetməsi – Docker Compose və Swarm Stacks-i idarə etmək imkanı yaradır.
+
+Portainer necə qurulur?
+Portainer-i quraşdırmaq üçün Docker-in sisteminizdə qurulduğuna əmin olun. Əgər Docker qurulmayıbsa, əvvəlcə onu qurmalısınız.
+1. Portainer-i Docker konteyneri kimi işlətmək
+Bu əmr Portainer-i qurur və işə salır:
+docker volume create portainer_data
+docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+    --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v portainer_data:/data \
+    portainer/portainer-ce:latest
+2. Portainer veb interfeysinə daxil olmaq
+Brauzerdə aşağıdakı URL-ə daxil olun:
+🔗 https://localhost:9443
+İlk dəfə giriş edərkən administrator hesabı üçün parol yaratmalısınız.
+
+Portainer-i Swarm və ya Kubernetes üçün qurmaq
+Əgər Docker Swarm və ya Kubernetes mühitində istifadə etmək istəyirsinizsə, uyğun agentləri quraşdırmalısınız.
+Swarm üçün:
+docker service create \
+    --name portainer \
+    --publish 8000:8000 --publish 9443:9443 \
+    --constraint 'node.role == manager' \
+    --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+    --mount type=volume,src=portainer_data,dst=/data \
+    portainer/portainer-ce:latest
+Kubernetes üçün:
+kubectl apply -f https://downloads.portainer.io/portainer-agent-k8s.yaml
+
+Nəticə
+Portainer, konteynerlərinizi daha rahat və effektiv idarə etməyə kömək edən güclü bir vasitədir. Əsas üstünlükləri arasında qrafik interfeys, multi-user dəstəyi və monitoring imkanları var. Xüsusilə Docker Swarm və Kubernetes kimi kompleks mühitlərdə idarəetməni asanlaşdırır.
+
+
+
+////
+Docker info
+sadece: docker swarm init yazaraq komputerimizi esas menecer ede bilerik
+docker node ls
