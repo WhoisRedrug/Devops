@@ -40,3 +40,22 @@ git remote add origin git@github.com:WhoisRedrug/Devops.git
 git branch -M main
 git commit -m "mesaj"
 git push -u origin main
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+git rebase origin/main---- update ucun lazimli olacaq her hansi bir problem olarsa.
