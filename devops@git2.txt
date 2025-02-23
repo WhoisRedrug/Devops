@@ -1,0 +1,44 @@
+Evvelce Swap ucun ne qeder yer ayrilib ona baxiriq
+free -h baxiriq hecmine
+meselen 4.5 gb 5 gb etmek lazimdir
+command:
+sudo fallocate -l 1G /swap1.img
+
+icaze veririy evvelce:
+sudo chmod 600 /swap1.img
+
+swap area yaradiriq file ucun:
+sudo mkswap /swap2.img
+
+daha sonra swap on ederek swap aktiv edirik:
+sudo swapon /swap2.img
+
+fstaba swap2 filemizi elave edirik:
+nano etc/fstab
+kopyala yapistir
+
+daha sonra swapon --show ederek swap2 file mizi gore bilerik
+ free -h yene ederek swap gormek mumkundur
+ 
+ 
+ 
+
+ WEB SERVER DUZELDILMESI:
+ apt-get install http* -y
+ 
+daha sonra apache2 yukluyuruy:
+apt install apache2
+ 
+ daha sonra apache2 enable etmeliyiy:
+ systemctl enable --now apache2
+ 
+ hemin html serverimizi gormey ucun:
+ip yazib gore bileriy
+cd /var/www/html 
+nano index.html 
+
+indi her hansi bir real proyekti oraya atmaq ucun:
+copy paste to index.html :)
+lazim gelse linux yuklemek ucun:
+scp "faylimiz" redrug@192.168.0.156:/home/redrug
+kodumuzu yazib davam edirik)
