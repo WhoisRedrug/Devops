@@ -1,0 +1,65 @@
+Kubernets Muasir konteyner idare etme orkestr rolu oynayir. Docker yerine daha cox Kubernets istifade olunur cunki daha elverislidir
+Daha cox bulud texnologiyalari ve mikroservis arxitekturasina malik serverler uzerinde istifade olunur
+Nodes:
+1) Master node - Klasteri idare eden node dur ve en esasi bu node dur
+2) Worker node - Podlarin yerlesdirildiyi ve tetbiqlerin islendiyi nodeddur.
+
+
+MAster node ----
+1. ETCD - paylanmis acar deyer bazasi. Kubernet veziyetini ve konfiqurasiyalari ozunde saxlayir
+2. API server - Butun idare etme emeliyyatlarinin qebul edildiyi noqte
+3. Scheduler - Podlarin hansi nodelerede yerleseceyini teyin edir
+4. Controol Manager - Podlarin veziyyetini ve replikasini izleyir., podlari avtomatik yeniden baslatma funksiyasini icra edir.
+
+Worker Nodes ----
+1. Kubelet - Her node da podlari idare eden agentdir
+2. Kube Proxy - Sebeke trafikini idare edir
+3. Cntainer Runtime - Podlari idareetme ucun istifade olunan konteyner muherriki
+ 
+ Kuber certificate CKA; Elde etmesi cox asanddir 445 dollardir ve 2 il etibarli bir certificate dir
+ Kubernets doc ile her seyi tapmaq olar(imtahanda istifade etmek mumkundur)
+ 
+ POD nedir --- Podlar Kubernetsde yerlesdirilen en kicik is vahididir . Bir nece konteyneri ehtiva edir. Her bir podun oz ip unvani olur ve resurslari paylasila biler.
+ Eger bir pod dayansa Replica set yeni bir pod yaradir. 
+ Deployement tetbiqlere yeni versiyalari yerlesdirmek ve yaxud yeni versiyadan evvelki versiyaya qayitmagi temin edir
+ ngnix-deployement.yaml:
+ apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+bu sadece bir example dir
+Yaml file onemli olacaq Kuberenets deployement de
+
+Yeni pod yaratmaq ucun -- kubectl run ngnix --image=ngnix 
+Clusterde podlari yoxlamaq -- kubectl get pods
+Podlarin statusunu yoxlmaq -- kubectl get pods -watch
+Clusterde detalli melmatlari gostermek -- kubectldescibe pod ngnix-pod
+Clusterde tetbiq (Deployement yaratmaq) -- kubectl create deployement my-app --image=ngnix
+Deployemen miqtyasini deyismek (scale) -- kubectl scale deployement my-app --replicas=5
+Clusterde Servis -- kubectl expose deployement my-app --type=LoadBalancer --port=80
+Pod daxilinde komanda icra etmek -- kubectl exec -it ngnix-pod --/bin/bash
+Clusterde namespace yaratmaq -- kubectl create namespace my-namespace
+Namespace ler uzre podlari gostermek -- kubectl get pods --namespace=my-namespace\
+Clusterde Podlari silmek -- kubectl delete pod ngnix-pod
+Clusterde resurslari izlemek -- kubectl top nodes kubectl top pods
+Clusterde Loqlari yoxlamaq -- kubectl logs  ngnix-pod
+Clusterde Rollout Restart (Tetbiq Yenileme) -- kubectl rollout restart deployement my-app
+Clusterde Resurslarinin YAML faylini gosteremek -- kubectl get pode ngnix-pod -o yaml
+
