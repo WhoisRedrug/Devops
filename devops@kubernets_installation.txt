@@ -1,0 +1,46 @@
+https://www.redswitches.com/blog/install-kubernetes-cluster-ubuntu/
+Bu linkden eledim 20 deqeye 
+Master-de 
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+sudo apt update
+sudo apt install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+swapoff -a
+sudo sed -i 's|^\(/swap\.img.*\)|#\1|' /etc/fstab
+
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf overlay br_netfilter 
+EOF
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf net.bridge.bridge-nf-call-iptables = 1 net.bridge.bridge-nf-call-ip6tables = 1 net.ipv4.ip_forward = 1 
+EOF
+sudo sysctl --system
+
+sudo sysctl --system
+sudo apt install containerd -y
+sudo systemctl enable --now containerd
+
+Bura qeder hem master-de hemde workerde edirsen
+######################################################################################
+Burda ise ancaq Masterde edirsen
+
+
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Kubernetes-də "Flannel", pod-lar arasında şəbəkə əlaqəsini təmin edən bir şəbəkə (networking) əlavəsidir. Flannel, Kubernetes mühitində pod-ların bir-biri ilə əlaqə qurmasını təmin edir və bu, şəbəkə əlaqəsi üçün vacib olan bir vasitədir.
+Flannel-ın xüsusiyyətləri:
+Pod-lar arasında əlaqə: Kubernetes-dəki pod-lar Flannel vasitəsilə fərqli node-lar arasında əlaqə qura bilir.
+Overlay Şəbəkəsi: Flannel adətən overlay şəbəkə həllindən istifadə edir. Bu, pod-ların öz fiziki şəbəkəsindən asılı olmayaraq virtual şəbəkə üzərində əlaqə qurmasına imkan verir.
+Sadə qurulum: Flannel, Kubernetes üçün sadə və asan qurulabilən bir şəbəkə həlli təqdim edir. Çox mürəkkəb şəbəkə xüsusiyyətləri təqdim etməsə də, kiçik və orta ölçəkli Kubernetes klasterləri üçün ideal bir həlldir.
+Flannel, Kubernetes-dəki hər bir pod-a bir IP ünvanı təyin edir və bu IP-lər vasitəsilə pod-lar arasında əlaqə qurulmasını təmin edir.
+Qısacası, Flannel, Kubernetes üçün bir şəbəkə həlli olub, pod-lar arasında şəbəkə əlaqəsini təmin edir.
+
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
